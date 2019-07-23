@@ -1,4 +1,4 @@
-package com.middleware.middlewarerabbitmq.rabbitMq.direct;
+package com.middleware.middlewarerabbitmq.rabbitMq.topic;
 
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
@@ -8,22 +8,22 @@ import com.rabbitmq.client.ConnectionFactory;
 /**
  * @author wangxia
  * @date 2019/7/22 16:28
- * @Description:  多个主题可以指定一个路由Key  消费者消费对应的key即可  但是routekey必须完全一致
+ * @Description:  多个主题可以指定一个路由Key  消费者消费对应的key即可  但是routekey可通过正则匹配
  */
-public class EmitLogDirect {
+public class EmitLogTopic {
 
 
-    private static final String EXCHANGE_NAME = "direct_logs";
+    private static final String EXCHANGE_NAME = "topic_logs";
 
     public static void main(String[] argv) throws Exception {
-        argv=new String[]{"debuge"};
+        argv=new String[]{"info"};
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
         try (Connection connection = factory.newConnection();
              Channel channel = connection.createChannel()) {
             //声明direct
             //exchange name,type [durable(持久化) false  autoDelete(自动删除)false arguments(Map) null]
-            channel.exchangeDeclare(EXCHANGE_NAME, BuiltinExchangeType.DIRECT);
+            channel.exchangeDeclare(EXCHANGE_NAME, BuiltinExchangeType.TOPIC);
 
             //创建队列
             //quueuename durable exclusice  autodelete arguments
@@ -33,14 +33,14 @@ public class EmitLogDirect {
 
             //绑定队列
             //queuename exchangename routingKey arguments
-            channel.queueBind("info",EXCHANGE_NAME,"info_log",null);
-            channel.queueBind("error",EXCHANGE_NAME,"error_log",null);
-            channel.queueBind("debuge",EXCHANGE_NAME,"error_log",null);
+            channel.queueBind("info",EXCHANGE_NAME,"#_log",null);
+            channel.queueBind("error",EXCHANGE_NAME,"#_log",null);
+            channel.queueBind("debuge",EXCHANGE_NAME,"#_log",null);
             String severity = getSeverity(argv);
             String message = getMessage(argv);
 
             //exchangename  routingkey
-            channel.basicPublish(EXCHANGE_NAME, severity, null, message.getBytes("UTF-8"));
+            channel.basicPublish(EXCHANGE_NAME, "all_log", null, message.getBytes("UTF-8"));
             System.out.println(" [x] Sent '" + severity + "':'" + message + "'");
         }
     }

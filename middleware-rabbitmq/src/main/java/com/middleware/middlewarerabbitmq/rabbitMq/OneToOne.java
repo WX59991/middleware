@@ -13,7 +13,7 @@ import com.rabbitmq.client.DeliverCallback;
 public class OneToOne {
 
     //队列名
-    static final String QUEUE_NAME="one_to_one";
+    static final String QUEUE_NAME="one_to_one2";
 
     public static void main(String[] args){
         new Thread(new Consumer()).start();
@@ -31,7 +31,7 @@ public class OneToOne {
         try(Connection connection=connectionFactory.newConnection()){
             Channel channel=connection.createChannel();
             //声明队列  队列名  持久性
-            channel.queueDeclare(QUEUE_NAME,false,false, false,null);
+            channel.queueDeclare(QUEUE_NAME,true,false, false,null);
             String message="hello World!";
             //发布消息
             channel.basicPublish("",QUEUE_NAME,null,message.getBytes());
@@ -55,7 +55,7 @@ public class OneToOne {
             //一次接受的数据量
             channel.basicQos(1);
             //声明队列
-            channel.queueDeclare(QUEUE_NAME,false,false, false,null);
+            channel.queueDeclare(QUEUE_NAME,true,false, false,null);
             DeliverCallback deliverCallback=(consumerTag, delivery)->{
                 String message=new String(delivery.getBody(),"UTF-8");
                 System.out.println("received:"+message);
@@ -86,10 +86,10 @@ class Consumer implements Runnable{
             //一次接受的数据量
             channel.basicQos(1);
             //声明队列
-            channel.queueDeclare(OneToOne.QUEUE_NAME,false,false, false,null);
+            channel.queueDeclare(OneToOne.QUEUE_NAME,true,false, false,null);
             DeliverCallback deliverCallback=(consumerTag, delivery)->{
                 String message=new String(delivery.getBody(),"UTF-8");
-                System.out.println("received:"+message);
+                System.out.println(Thread.currentThread().getName()+"received:"+message);
                 //手动ack
 //                channel.basicAck(delivery.getEnvelope().getDeliveryTag(),false);
             };
